@@ -2,12 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import configuration from 'src/config/configuration';
-import validationSchema from 'src/config/validation';
-import { JwtAuthGuard } from 'src/guards/jwtAuth.guard';
+import configuration from '../config/configuration';
+import validationSchema from '../config/validation';
+import { JwtAuthGuard } from '../guards/jwtAuth.guard';
 import { AuthModule } from './auth.module';
+import { RamModule } from './ram.module';
 import { UserModule } from './user.module';
 
+/**
+ * Sets up the entire app module.
+ */
 @Module({
   providers: [
     {
@@ -41,6 +45,7 @@ import { UserModule } from './user.module';
     }),
     AuthModule,
     UserModule,
+    RamModule,
   ],
 })
 export class AppModule {}

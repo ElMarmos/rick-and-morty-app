@@ -5,10 +5,10 @@ import {
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
-import { Public } from 'src/decorators/public.decorator';
-import { ErrorResponseDto } from 'src/dtos/errorResponse.dto';
-import { CreateUserDto } from 'src/dtos/user.dto';
-import { UserService } from 'src/services/user.service';
+import { Public } from '../decorators/public.decorator';
+import { ErrorResponseDto } from '../dtos/errorResponse.dto';
+import { CreateUserDto } from '../dtos/user.dto';
+import { UserService } from '../services/user.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -24,6 +24,6 @@ export class UserController {
     type: ErrorResponseDto,
   })
   async signUp(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+    await this.userService.createUser(createUserDto);
   }
 }

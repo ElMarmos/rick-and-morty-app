@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Length } from 'class-validator';
-import { IsNotBlank } from 'src/validators/isNotBlank.validator';
+import { IsNotBlank } from '../validators/isNotBlank.validator';
 
 export class CreateUserDto {
   @IsNotEmpty()

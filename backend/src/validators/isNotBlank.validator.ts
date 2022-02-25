@@ -1,7 +1,7 @@
 import { registerDecorator, ValidationOptions } from 'class-validator';
 
 /**
- * Checks if a string is not empty after being trimmed.
+ * Decorator that checks if a string is not empty after being trimmed.
  */
 export function IsNotBlank(
   nullable = false,

@@ -3,9 +3,9 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/dtos/user.dto';
-import { User } from 'src/entities/user.entity';
-import { UserRepository } from 'src/repositories/user.repository';
+import { CreateUserDto } from '../dtos/user.dto';
+import { User } from '../entities/user.entity';
+import { UserRepository } from '../repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class UserService {
    * @param id Id of the user to find.
    * @returns User object if found, null otherwise.
    */
-  async findUserById(id: number): Promise<User | null> {
+  async findUserById(id: number): Promise<User> {
     const user = await this.userRepository.findOne(id);
 
     if (!user) {

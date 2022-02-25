@@ -1,13 +1,20 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity({ name: 'favorite_characters' })
+@Index('IDX_USER_CHARACT_NUMBER', ['user', 'characterId'], { unique: true })
 export class FavoriteCharacter {
   @PrimaryGeneratedColumn({ unsigned: true })
   readonly id: number;
 
-  @Column({ name: 'number' })
-  number: number;
+  @Column({ name: 'character_id' })
+  characterId: number;
 
   @Column({ name: 'page' })
   page: number;
@@ -15,8 +22,9 @@ export class FavoriteCharacter {
   @ManyToOne(() => User, (user) => user.favoriteCharacters)
   user: User;
 
-  constructor(number: number, page: number) {
-    this.number = number;
+  constructor(characterId: number, page: number, user: User) {
+    this.characterId = characterId;
     this.page = page;
+    this.user = user;
   }
 }

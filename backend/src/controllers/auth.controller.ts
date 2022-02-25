@@ -13,11 +13,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Public } from 'src/decorators/public.decorator';
-import { AuthenticationDto, TokenDto } from 'src/dtos/authentication.dto';
-import { ErrorResponseDto } from 'src/dtos/errorResponse.dto';
-import { LocalAuthGuard } from 'src/guards/localAuth.guard';
-import { AuthService } from 'src/services/auth.service';
+import { Public } from '../decorators/public.decorator';
+import { AuthenticationDto, TokenDto } from '../dtos/authentication.dto';
+import { ErrorResponseDto } from '../dtos/errorResponse.dto';
+import { LocalAuthGuard } from '../guards/localAuth.guard';
+import { AuthService } from '../services/auth.service';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -36,7 +36,6 @@ export class AuthController {
     type: ErrorResponseDto,
   })
   login(@Request() { user }) {
-    console.log(user);
     return this.authService.login(user);
   }
 }
