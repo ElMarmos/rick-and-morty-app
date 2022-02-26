@@ -1,32 +1,28 @@
-import {
-  CacheModule,
-  UnprocessableEntityException,
-  CACHE_MANAGER,
-} from '@nestjs/common';
+import { CACHE_MANAGER, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RamService } from './ram.service';
-import { CreateUserDto } from '../dtos/user.dto';
 import { UserRepository } from '../repositories/user.repository';
 import { UserService } from './user.service';
-import { RamController } from '../controllers/ram.controller';
 import { FavoriteCharacterRepository } from '../repositories/favoriteCharacter.repository';
 import { Cache } from 'cache-manager';
 import axios from 'axios';
 import { PaginationDto } from '../dtos/pagination.dto';
 import { CharacterDto } from '../dtos/character.dto';
-import { PageParamDto } from '../dtos/queryParams.dto';
 import { User } from '../entities/user.entity';
 import { FavoriteCharacter } from '../entities/favoriteCharacter.entity';
 
-describe('RamController', () => {
-  let ramController: RamController;
+jest.mock('cache-manager');
+jest.mock('./user.service');
+jest.mock('../repositories/favoriteCharacter.repository');
+
+describe('RamService', () => {
   let userService: UserService;
   let ramService: RamService;
   let cacheManager: Cache;
   let favoriteCharacterRepository: FavoriteCharacterRepository;
 
   // Test data
-  const apiResponse1 = {
+  const apiResponse = {
     info: {
       count: 3,
       pages: 2,
@@ -81,40 +77,6 @@ describe('RamController', () => {
     ],
   };
 
-  const apiResponse2 = {
-    info: {
-      count: 3,
-      pages: 2,
-      next: null,
-      prev: 'https://rickandmortyapi.com/api/character/?page=1',
-    },
-    results: [
-      {
-        id: 3,
-        name: 'Summer Smith',
-        status: 'Alive',
-        species: 'Human',
-        type: '',
-        gender: 'Female',
-        origin: {
-          name: 'Earth (Replacement Dimension)',
-          url: 'https://rickandmortyapi.com/api/location/20',
-        },
-        location: {
-          name: 'Earth (Replacement Dimension)',
-          url: 'https://rickandmortyapi.com/api/location/20',
-        },
-        image: 'https://rickandmortyapi.com/api/character/avatar/3.jpeg',
-        episode: [
-          'https://rickandmortyapi.com/api/episode/4',
-          'https://rickandmortyapi.com/api/episode/5',
-        ],
-        url: 'https://rickandmortyapi.com/api/character/3',
-        created: '2017-11-04T19:09:56.428Z',
-      },
-    ],
-  };
-
   // Test data
   const char1 = new CharacterDto();
   char1.id = 1;
@@ -127,7 +89,6 @@ describe('RamController', () => {
   char1.location = 'Citadel of Ricks';
   char1.image = 'https://rickandmortyapi.com/api/character/avatar/1.jpeg';
   char1.episodes = [1, 2, 3];
-  char1.isFavorite = true;
 
   const char2 = new CharacterDto();
   char2.id = 2;
@@ -140,7 +101,6 @@ describe('RamController', () => {
   char2.location = 'Citadel of Ricks';
   char2.image = 'https://rickandmortyapi.com/api/character/avatar/2.jpeg';
   char2.episodes = [1, 2];
-  char2.isFavorite = false;
 
   const char3 = new CharacterDto();
   char3.id = 3;
@@ -153,7 +113,6 @@ describe('RamController', () => {
   char3.location = 'Earth (Replacement Dimension)';
   char3.image = 'https://rickandmortyapi.com/api/character/avatar/3.jpeg';
   char3.episodes = [4, 5];
-  char3.isFavorite = true;
 
   const paginationDto1 = new PaginationDto();
   paginationDto1.count = 3;
@@ -176,102 +135,166 @@ describe('RamController', () => {
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [RamController],
       providers: [
         UserService,
         UserRepository,
         RamService,
         FavoriteCharacterRepository,
+        {
+          provide: CACHE_MANAGER,
+          useClass: jest.fn().mockImplementation(() => ({
+            get: jest.fn(),
+            set: jest.fn(),
+          })),
+        },
       ],
-      imports: [CacheModule.register()],
     }).compile();
 
-    userService = app.get<UserService>(UserService);
     ramService = app.get<RamService>(RamService);
-    ramController = app.get<RamController>(RamController);
+    cacheManager = app.get(CACHE_MANAGER);
+    userService = app.get<UserService>(UserService);
     favoriteCharacterRepository = app.get<FavoriteCharacterRepository>(
       FavoriteCharacterRepository,
     );
-    cacheManager = app.get(CACHE_MANAGER);
   });
 
   afterEach(() => {
+    // Reset mocks
     jest.resetAllMocks();
+
+    // Reset characters favorite status
+    char1.isFavorite = undefined;
+    char2.isFavorite = undefined;
+    char3.isFavorite = undefined;
   });
 
   describe('getCharacters', () => {
-    it('should return a PaginationDto from the server', async () => {
-      const userServiceSpy = jest
-        .spyOn(userService, 'findUserById')
-        .mockResolvedValue(user);
-      const cacheSpy = jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
-      const axiosSpy = jest
-        .spyOn(axios, 'get')
-        .mockResolvedValue({ data: apiResponse1 });
-      const favCharRepoSpy = jest
+    it('should return a PaginationDto from the API', async () => {
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
+      jest.spyOn(axios, 'get').mockResolvedValue({ data: apiResponse });
+      jest
         .spyOn(favoriteCharacterRepository, 'findAllByUserAndPage')
         .mockResolvedValue([favoriteChar1]);
 
-      const resPaginationDto = await ramController.getCharacters(
-        { user: { userId: 1 } },
-        { page: 1 },
-      );
+      char1.isFavorite = true;
+      char2.isFavorite = false;
 
-      expect(userServiceSpy).toHaveBeenCalledWith(1);
-      expect(cacheSpy).toHaveBeenCalledWith(`page${1}`);
-      expect(axiosSpy).toHaveBeenCalledWith('/character', {
+      const resPaginationDto = await ramService.getCharacters(1, 1);
+
+      expect(userService.findUserById).toHaveBeenCalledWith(1);
+      expect(cacheManager.get).toHaveBeenCalledWith(`page${1}`);
+      expect(axios.get).toHaveBeenCalledWith('/character', {
         params: { page: 1 },
       });
-      expect(favCharRepoSpy).toHaveBeenCalledWith(user, 1);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `page${1}`,
+        expect.any(String),
+      );
+      expect(
+        favoriteCharacterRepository.findAllByUserAndPage,
+      ).toHaveBeenCalledWith(user, 1);
       expect(resPaginationDto).toEqual(paginationDto1);
     });
 
     it('should return a PaginationDto from cache', async () => {
-      const userServiceSpy = jest
-        .spyOn(userService, 'findUserById')
-        .mockResolvedValue(user);
-      const cacheSpy = jest
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest
         .spyOn(cacheManager, 'get')
         .mockResolvedValue(JSON.stringify(paginationDto2));
-      const axiosSpy = jest.spyOn(axios, 'get');
-      const favCharRepoSpy = jest
+      jest
         .spyOn(favoriteCharacterRepository, 'findAllByUserAndPage')
         .mockResolvedValue([favoriteChar2]);
 
-      const resPaginationDto = await ramController.getCharacters(
-        { user: { userId: 1 } },
-        { page: 2 },
-      );
+      char3.isFavorite = true;
 
-      expect(userServiceSpy).toHaveBeenCalledWith(1);
-      expect(cacheSpy).toHaveBeenCalledWith(`page${2}`);
-      expect(axiosSpy).toHaveBeenCalledTimes(0);
-      expect(favCharRepoSpy).toHaveBeenCalledWith(user, 2);
+      const resPaginationDto = await ramService.getCharacters(1, 2);
+
+      expect(userService.findUserById).toHaveBeenCalledWith(1);
+      expect(cacheManager.get).toHaveBeenCalledWith(`page${2}`);
+      expect(axios.get).toHaveBeenCalledTimes(0);
+      expect(
+        favoriteCharacterRepository.findAllByUserAndPage,
+      ).toHaveBeenCalledWith(user, 2);
       expect(resPaginationDto).toEqual(paginationDto2);
     });
 
-    it('should return a PaginationDto from cache', async () => {
-      const userServiceSpy = jest
-        .spyOn(userService, 'findUserById')
-        .mockResolvedValue(user);
-      const cacheSpy = jest
+    it('should return a PaginationDto with items without favorites', async () => {
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest
         .spyOn(cacheManager, 'get')
-        .mockResolvedValue(JSON.stringify(paginationDto2));
-      const axiosSpy = jest.spyOn(axios, 'get');
-      const favCharRepoSpy = jest
+        .mockResolvedValue(JSON.stringify(paginationDto1));
+      jest
         .spyOn(favoriteCharacterRepository, 'findAllByUserAndPage')
-        .mockResolvedValue([favoriteChar2]);
+        .mockResolvedValue([]);
 
-      const resPaginationDto = await ramController.getCharacters(
-        { user: { userId: 1 } },
-        { page: 2 },
+      char1.isFavorite = false;
+      char2.isFavorite = false;
+
+      const resPaginationDto = await ramService.getCharacters(1, 1);
+
+      expect(userService.findUserById).toHaveBeenCalledWith(1);
+      expect(cacheManager.get).toHaveBeenCalledWith(`page${1}`);
+      expect(axios.get).toHaveBeenCalledTimes(0);
+      expect(
+        favoriteCharacterRepository.findAllByUserAndPage,
+      ).toHaveBeenCalledWith(user, 1);
+      expect(resPaginationDto).toEqual(paginationDto1);
+    });
+
+    it('should throw NotFoundException if user is not found', async () => {
+      jest.spyOn(userService, 'findUserById').mockImplementation(() => {
+        throw new NotFoundException();
+      });
+
+      await expect(ramService.getCharacters(1, 1)).rejects.toThrow(
+        NotFoundException,
       );
+    });
 
-      expect(userServiceSpy).toHaveBeenCalledWith(1);
-      expect(cacheSpy).toHaveBeenCalledWith(`page${2}`);
-      expect(axiosSpy).toHaveBeenCalledTimes(0);
-      expect(favCharRepoSpy).toHaveBeenCalledWith(user, 2);
-      expect(resPaginationDto).toEqual(paginationDto2);
+    it('should throw NotFoundException if API request fails', async () => {
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
+      jest.spyOn(axios, 'get').mockRejectedValue({});
+
+      await expect(ramService.getCharacters(1, 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('toggleCharacterFromFavorites', () => {
+    it('should add a character to favorites', async () => {
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest
+        .spyOn(favoriteCharacterRepository, 'findByUserAndCharacterId')
+        .mockResolvedValue(null);
+
+      await ramService.toggleCharacterFromFavorites(1, 1, 1);
+
+      expect(
+        favoriteCharacterRepository.findByUserAndCharacterId,
+      ).toHaveBeenCalledWith(user, 1);
+      expect(favoriteCharacterRepository.save).toHaveBeenCalledWith(
+        favoriteChar1,
+      );
+    });
+
+    it('should remove a character from favorites', async () => {
+      jest.spyOn(userService, 'findUserById').mockResolvedValue(user);
+      jest
+        .spyOn(favoriteCharacterRepository, 'findByUserAndCharacterId')
+        .mockResolvedValue(favoriteChar2);
+
+      await ramService.toggleCharacterFromFavorites(1, 3, 2);
+
+      expect(
+        favoriteCharacterRepository.findByUserAndCharacterId,
+      ).toHaveBeenCalledWith(user, 3);
+      expect(favoriteCharacterRepository.delete).toHaveBeenCalledWith(
+        favoriteChar2.id,
+      );
+      expect(favoriteCharacterRepository.save).not.toHaveBeenCalled();
     });
   });
 });

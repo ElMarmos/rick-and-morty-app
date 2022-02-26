@@ -41,11 +41,9 @@ describe('UserController', () => {
         throw new UnprocessableEntityException();
       });
 
-      try {
-        await userController.signUp(newUserDto);
-      } catch (e) {
-        expect(e).toBeInstanceOf(UnprocessableEntityException);
-      }
+      await expect(userController.signUp(newUserDto)).rejects.toThrow(
+        UnprocessableEntityException,
+      );
 
       expect(userService.createUser).toHaveBeenLastCalledWith(newUserDto);
     });

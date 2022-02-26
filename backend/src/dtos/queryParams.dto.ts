@@ -7,9 +7,3 @@ export class PageParamDto {
   @Type(() => Number)
   page?: number;
 }
-
-export class FindOneParamsDto {
-  @IsInt()
-  @Type(() => Number)
-  id: number;
-}

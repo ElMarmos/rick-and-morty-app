@@ -1,25 +1,16 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Put,
-  Query,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Put, Query, Request } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AddCharacterToFavoriteDto, CharacterDto } from '../dtos/character.dto';
 import { PaginationDto } from '../dtos/pagination.dto';
-import { FindOneParamsDto, PageParamDto } from '../dtos/queryParams.dto';
+import { PageParamDto } from '../dtos/queryParams.dto';
 import { RamService } from '../services/ram.service';
 
 @ApiTags('Rick and Morty API')
@@ -44,25 +35,6 @@ export class RamController {
   @ApiBearerAuth('bearerAuth')
   async getCharacters(@Request() { user }, @Query() { page }: PageParamDto) {
     return this.ramService.getCharacters(user.userId, page);
-  }
-
-  @Get('characters/:id')
-  @ApiParam({
-    name: 'id',
-    type: Number,
-    example: 1,
-    required: true,
-    description: 'Id of the character to retrieve.',
-  })
-  @ApiOperation({ summary: 'Get a Rick and Morty character details.' })
-  @ApiOkResponse({
-    description: 'Details of the character.',
-    type: CharacterDto,
-  })
-  @ApiNotFoundResponse({ description: 'Authenticated user not found.' })
-  @ApiBearerAuth('bearerAuth')
-  async getCharacter(@Request() { user }, @Param() { id }: FindOneParamsDto) {
-    return this.ramService.getCharacter(user.userId, id);
   }
 
   @Put('characters')

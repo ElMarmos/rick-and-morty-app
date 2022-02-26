@@ -82,11 +82,9 @@ describe('RamController', () => {
         throw new NotFoundException();
       });
 
-      try {
-        await ramController.getCharacters(auth, queryParams);
-      } catch (e) {
-        expect(e).toBeInstanceOf(NotFoundException);
-      }
+      await expect(
+        ramController.getCharacters(auth, queryParams),
+      ).rejects.toThrow(NotFoundException);
 
       expect(ramService.getCharacters).toHaveBeenCalledWith(
         auth.user.userId,
@@ -95,41 +93,7 @@ describe('RamController', () => {
     });
   });
 
-  describe('getCharacter', () => {
-    const params = { id: 1 };
-
-    it('should return a CharacterDto', async () => {
-      jest.spyOn(ramService, 'getCharacter').mockResolvedValue(char1);
-
-      const response = await ramController.getCharacter(auth, params);
-
-      expect(ramService.getCharacter).toHaveBeenCalledWith(
-        auth.user.userId,
-        params.id,
-      );
-      expect(response).toEqual(char1);
-    });
-
-    it('should throw a NotFoundException', async () => {
-      jest.spyOn(ramService, 'getCharacter').mockImplementation(() => {
-        throw new NotFoundException();
-      });
-
-      try {
-        await ramController.getCharacter(auth, params);
-      } catch (e) {
-        expect(e).toBeInstanceOf(NotFoundException);
-      }
-
-      expect(ramService.getCharacter).toHaveBeenCalledWith(
-        auth.user.userId,
-        params.id,
-      );
-    });
-  });
-
   describe('toggleCharacterFavorite', () => {
-    const params = { id: 1 };
     const body = new AddCharacterToFavoriteDto();
     body.characterId = 1;
     body.page = 1;

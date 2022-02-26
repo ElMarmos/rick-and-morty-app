@@ -83,45 +83,6 @@ export class RamService {
   }
 
   /**
-   * Gets a character details from the Rick and Morty API given it's id.
-   * @param userId Id of the authenticated user.
-   * @param id Id of the character.
-   * @returns CharacterDto with the character data, NotFoundException if the character doesn't exists.
-   */
-  async getCharacter(userId: number, id: number): Promise<CharacterDto> {
-    const user = await this.userService.findUserById(userId);
-
-    let characterDto: CharacterDto;
-
-    const cachedCharacter = (await this.cacheManager.get(
-      `character${id}`,
-    )) as string;
-    if (cachedCharacter) {
-      characterDto = JSON.parse(cachedCharacter) as CharacterDto;
-    } else {
-      try {
-        const { data } = await axios.get(`/character/${id}`);
-
-        characterDto = plainToInstance(CharacterDto, data, {
-          excludeExtraneousValues: true,
-        });
-
-        this.cacheManager.set(`character${id}`, JSON.stringify(characterDto));
-      } catch (_) {
-        throw new NotFoundException('Character not found');
-      }
-    }
-
-    characterDto.isFavorite =
-      (await this.favoriteCharacterRepository.findByUserAndCharacterId(
-        user,
-        id,
-      )) != null;
-
-    return characterDto;
-  }
-
-  /**
    * Adds or removes a character from the list of favorites.
    * @param userId Id of the authenticated user.
    * @param characterId Id of the character.
