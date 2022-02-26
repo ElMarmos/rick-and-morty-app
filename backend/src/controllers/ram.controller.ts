@@ -80,7 +80,7 @@ export class RamController {
     @Request() { user },
     @Body() { characterId, page }: AddCharacterToFavoriteDto,
   ) {
-    return this.ramService.toggleCharacterFromFavorites(
+    await this.ramService.toggleCharacterFromFavorites(
       user.userId,
       characterId,
       page,

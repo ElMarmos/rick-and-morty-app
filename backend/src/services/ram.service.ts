@@ -6,12 +6,12 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { plainToInstance } from 'class-transformer';
-import { CharacterDto } from 'src/dtos/character.dto';
+import { CharacterDto } from '../dtos/character.dto';
 import { PaginationDto } from '../dtos/pagination.dto';
 import { Cache } from 'cache-manager';
 import { UserService } from './user.service';
 import { FavoriteCharacterRepository } from '../repositories/favoriteCharacter.repository';
-import { FavoriteCharacter } from 'src/entities/favoriteCharacter.entity';
+import { FavoriteCharacter } from '../entities/favoriteCharacter.entity';
 
 const RAM_API_BASE_URL = 'https://rickandmortyapi.com/api';
 
