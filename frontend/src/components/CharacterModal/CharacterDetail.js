@@ -148,6 +148,7 @@ const CharacterDetail = ({
       <FavoriteButtonContainer>
         {isFavorite ? (
           <FavoriteButton
+            data-testid="favorite-button"
             autoFocus
             onClick={() => dispatch(toggleFavorite(id))}
             isFavorite={true}
@@ -156,6 +157,7 @@ const CharacterDetail = ({
           </FavoriteButton>
         ) : (
           <FavoriteButton
+            data-testid="not-favorite-button"
             autoFocus
             onClick={() => dispatch(toggleFavorite(id))}
           >

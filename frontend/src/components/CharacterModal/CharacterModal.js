@@ -39,7 +39,10 @@ const CharacterModal = ({ character }) => {
 
   return (
     <Container>
-      <Backdrop onClick={() => dispatch(deselectCharacter())}></Backdrop>
+      <Backdrop
+        data-testid="modal-backdrop"
+        onClick={() => dispatch(deselectCharacter())}
+      ></Backdrop>
       <CharacterDetail data={character} />
     </Container>
   );

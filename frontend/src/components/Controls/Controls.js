@@ -122,6 +122,7 @@ const Controls = () => {
           <CurrentPageInput
             type="number"
             value={page}
+            data-testid="page-input"
             onChange={(e) => setPage(e.target.value)}
             onKeyPress={(e) => onKeyPress(e)}
           />
