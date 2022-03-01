@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { apiRegister } from "../../api/api";
-import FormControl from "../FormControl/FormControl";
-import Loading from "../Loading/Loading";
+import FormControl from "../../components/FormControl/FormControl";
+import Loading from "../../components/Loading/Loading";
 
 const LoginContainer = styled.div`
   padding: 60px 15px;

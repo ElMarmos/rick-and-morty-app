@@ -1,9 +1,9 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "../Login/Login";
-import Main from "../Main/Main";
-import NotFound from "../NotFound/NotFound";
-import Register from "../Register/Register";
+import Login from "../../pages/Login/Login";
+import Main from "../../pages/Main/Main";
+import NotFound from "../../pages/NotFound/NotFound";
+import Register from "../../pages/Register/Register";
 import RequireAuth from "../RequireAuth/RequireAuth";
 
 const App = () => {

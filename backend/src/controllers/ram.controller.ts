@@ -44,7 +44,6 @@ export class RamController {
   })
   @ApiOkResponse({
     description: 'Character added/removed from favorites.',
-    type: CharacterDto,
   })
   @ApiNotFoundResponse({ description: 'Authenticated user not found.' })
   @ApiBearerAuth('bearerAuth')

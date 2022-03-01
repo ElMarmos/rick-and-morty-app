@@ -54,7 +54,6 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const token = localStorage.getItem("token");
-
 if (token) {
   store.dispatch(login(token));
 }

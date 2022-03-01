@@ -4,8 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { apiLogin } from "../../api/api";
 import { login } from "../../slices/authSlice";
-import FormControl from "../FormControl/FormControl";
-import Loading from "../Loading/Loading";
+import FormControl from "../../components/FormControl/FormControl";
+import Loading from "../../components/Loading/Loading";
 
 const LoginContainer = styled.div`
   padding: 60px 15px;
@@ -98,9 +98,6 @@ const Login = () => {
       const {
         data: { token },
       } = await apiLogin(username, password);
-
-      setMessage("");
-      setStatus("succeeded");
 
       dispatch(login(token));
 

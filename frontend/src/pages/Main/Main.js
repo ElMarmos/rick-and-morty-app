@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
-import CharacterModal from "../CharacterModal/CharacterModal";
-import CharacterList from "../Characters/CharactersList";
-import Navbar from "../Navbar/Navbar";
+import CharacterModal from "../../components/CharacterModal/CharacterModal";
+import CharacterList from "../../components/Characters/CharactersList";
+import Navbar from "../../components/Navbar/Navbar";
 
 const Main = () => {
   const character = useSelector((state) => state.characters.character);
