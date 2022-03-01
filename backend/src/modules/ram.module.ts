@@ -21,7 +21,7 @@ import { FavoriteCharacterRepository } from '../repositories/favoriteCharacter.r
         store: redisStore,
         host: configService.get<string>('redis.host'),
         port: +configService.get<number>('redis.port'),
-        ttl: 5, // 5 minutes
+        ttl: 300, // 5 minutes
         max: 20, // Max number of items
       }),
       inject: [ConfigService],
